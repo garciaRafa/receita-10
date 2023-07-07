@@ -6,27 +6,27 @@ import '../util/ordenador.dart';
 enum TableStatus { idle, loading, ready, error }
 
 enum ItemType {
-  beer,
-  coffee,
-  nation,
+  food,
+  vehicle,
+  company,
   none;
 
   String get asString => '$name';
 
-  List<String> get columns => this == coffee
-      ? ["Nome", "Origem", "Tipo"]
-      : this == beer
-          ? ["Nome", "Estilo", "IBU"]
-          : this == nation
-              ? ["Nome", "Capital", "Idioma", "Esporte"]
+  List<String> get columns => this == vehicle
+      ? ["Marca", "Cor", "Modelo"]
+      : this == food
+          ? ["Prato", "Ingrediente", "Medição"]
+          : this == company
+              ? ["Nome", "Industria", "Tipo"]
               : [];
 
-  List<String> get properties => this == coffee
-      ? ["blend_name", "origin", "variety"]
-      : this == beer
-          ? ["name", "style", "ibu"]
-          : this == nation
-              ? ["nationality", "capital", "language", "national_sport"]
+  List<String> get properties => this == vehicle
+      ? ["make_and_model", "color", "car_type"]
+      : this == food
+          ? ["dish", "ingredient", "measurement"]
+          : this == company
+              ? ["business_name", "industry", "type"]
               : [];
 }
 
@@ -56,69 +56,24 @@ class DataService {
   });
 
   void carregar(index) {
-    final params = [ItemType.coffee, ItemType.beer, ItemType.nation];
+    final params = [ItemType.vehicle, ItemType.food, ItemType.company];
 
     carregarPorTipo(params[index]);
   }
 
-  void ordenarEstadoAtual(String propriedade, bool ascending) {
+  void ordenarEstadoAtual(final String propriedade, bool ascending) {
     List objetos = tableStateNotifier.value['dataObjects'] ?? [];
 
     if (objetos == []) return;
 
     Ordenador ord = Ordenador();
 
-    var objetosOrdenados = [];
+    Decididor d = DecididorJSON(propriedade, ascending);
 
     ItemType type = tableStateNotifier.value['itemType'];
 
-    print(ascending);
-
-    if (ascending == true) {
-      if (type == ItemType.beer && propriedade == "name") {
-        objetosOrdenados = ord.ordenarCervejasPorNomeCrescente(objetos);
-      } else if (type == ItemType.beer && propriedade == "style") {
-        objetosOrdenados = ord.ordenarCervejasPorEstiloCrescente(objetos);
-      } else if (type == ItemType.beer && propriedade == "ibu") {
-        objetosOrdenados = ord.ordenarCervejasPorIbuCrescente(objetos);
-      } else if (type == ItemType.coffee && propriedade == "blend_name") {
-        objetosOrdenados = ord.ordenarCafesPorNomeCrescente(objetos);
-      } else if (type == ItemType.coffee && propriedade == "origin") {
-        objetosOrdenados = ord.ordenarCafesPorOrigemCrescente(objetos);
-      } else if (type == ItemType.coffee && propriedade == "variety") {
-        objetosOrdenados = ord.ordenarCafesPorVariedadeCrescente(objetos);
-      } else if (type == ItemType.nation && propriedade == "nationality") {
-        objetosOrdenados = ord.ordenarNacoesPorNomeCrescente(objetos);
-      } else if (type == ItemType.nation && propriedade == "capital") {
-        objetosOrdenados = ord.ordenarNacoesPorCapitalCrescente(objetos);
-      } else if (type == ItemType.nation && propriedade == "language") {
-        objetosOrdenados = ord.ordenarNacoesPorLinguaCrescente(objetos);
-      } else if (type == ItemType.nation && propriedade == "national_sport") {
-        objetosOrdenados = ord.ordenarNacoesPorEsporteCrescente(objetos);
-      }
-    } else {
-      if (type == ItemType.beer && propriedade == "name") {
-        objetosOrdenados = ord.ordenarCervejasPorNomeDecrescente(objetos);
-      } else if (type == ItemType.beer && propriedade == "style") {
-        objetosOrdenados = ord.ordenarCervejasPorEstiloDecrescente(objetos);
-      } else if (type == ItemType.beer && propriedade == "ibu") {
-        objetosOrdenados = ord.ordenarCervejasPorIbuDecrescente(objetos);
-      } else if (type == ItemType.coffee && propriedade == "blend_name") {
-        objetosOrdenados = ord.ordenarCafesPorNomeDecrescente(objetos);
-      } else if (type == ItemType.coffee && propriedade == "origin") {
-        objetosOrdenados = ord.ordenarCafesPorOrigemDecrescente(objetos);
-      } else if (type == ItemType.coffee && propriedade == "variety") {
-        objetosOrdenados = ord.ordenarCafesPorVariedadeDecrescente(objetos);
-      } else if (type == ItemType.nation && propriedade == "nationality") {
-        objetosOrdenados = ord.ordenarNacoesPorNomeDecrescente(objetos);
-      } else if (type == ItemType.nation && propriedade == "capital") {
-        objetosOrdenados = ord.ordenarNacoesPorCapitalDecrescente(objetos);
-      } else if (type == ItemType.nation && propriedade == "language") {
-        objetosOrdenados = ord.ordenarNacoesPorLinguaDecrescente(objetos);
-      } else if (type == ItemType.nation && propriedade == "national_sport") {
-        objetosOrdenados = ord.ordenarNacoesPorEsporteDecrescente(objetos);
-      }
-    }
+    var objetosOrdenados =
+        ord.ordenarFuderoso(objetos, d.precisaTrocarAtualPeloProximo);
 
     emitirEstadoOrdenado(objetosOrdenados, propriedade,
         type.properties.indexOf(propriedade), ascending);
@@ -191,6 +146,25 @@ class DataService {
     var json = await acessarApi(uri);
 
     emitirEstadoPronto(type, json);
+  }
+}
+
+class DecididorJSON extends Decididor {
+  final String propriedade;
+
+  final bool crescente;
+
+  DecididorJSON(this.propriedade, [this.crescente = true]);
+
+  @override
+  bool precisaTrocarAtualPeloProximo(atual, proximo) {
+    try {
+      return crescente
+          ? atual[propriedade].compareTo(proximo[propriedade]) > 0
+          : atual[propriedade].compareTo(proximo[propriedade]) < 0;
+    } catch (error) {
+      return false;
+    }
   }
 }
 

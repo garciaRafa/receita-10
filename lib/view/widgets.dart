@@ -4,7 +4,6 @@ import '../data/data_service.dart';
 import 'package:flutter/gestures.dart';
 
 class MyCustomScrollBehavior extends MaterialScrollBehavior {
-  // Override behavior methods and getters like dragDevices
   @override
   Set<PointerDeviceKind> get dragDevices => {
         PointerDeviceKind.touch,
@@ -77,13 +76,13 @@ class NewNavBar extends HookWidget {
         currentIndex: state.value,
         items: const [
           BottomNavigationBarItem(
-            label: "Cafés",
-            icon: Icon(Icons.coffee_outlined),
+            label: "Carros",
+            icon: Icon(Icons.car_rental),
           ),
           BottomNavigationBarItem(
-              label: "Cervejas", icon: Icon(Icons.local_drink_outlined)),
+              label: "Comidas", icon: Icon(Icons.food_bank)),
           BottomNavigationBarItem(
-              label: "Nações", icon: Icon(Icons.flag_outlined))
+              label: "Negócio", icon: Icon(Icons.business))
         ]);
   }
 }
